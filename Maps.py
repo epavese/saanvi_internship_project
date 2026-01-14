@@ -61,6 +61,12 @@ class Neighbours:
         "Lyon": ["Paris", "Marseille"],
         "Marseille": ["Paris", "Lyon"],
 
+    def __str__(self):
+        return f"the following location is: {self.name} and the latitude is {self.lat} and the longitude is {self.long}."
+
+    def __repr__(self):
+        return str(self)
+    
         "Tokyo": ["Satiama", "Kyoto"],
         "Satiama": ["Tokyo", "Kyoto"],
         "Kyoto": ["Satiama", "Tokyo"],
@@ -142,5 +148,10 @@ def Sample_Data():
 
     return countries
 
+    "Seattle":["Portland","San Franscisco"], # pyright: ignore[reportUndefinedVariable]
+    "Portland":["Seattle", "San Francisco"],
+    "San Francisco":["Seattle", "Portland"]
+}
+    
 if __name__=="__main__":
     print(Sample_Data())
