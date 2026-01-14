@@ -40,6 +40,9 @@ class Location:
 
     def __str__(self):
         return f"the following location is: {self.name} and the latitude is {self.lat} and the longitude is {self.long}."
+
+    def __repr__(self):
+        return str(self)
     
 
 
