@@ -3,6 +3,17 @@ class Location:
         self.name = name
         self.lat = latitude
         self.long = longitude
+        self.check_invariants()
+    
+    def check_invariants(self):
+        if not isinstance(self.name,str):
+            raise TypeError(f"The location name should be a string, got {type(self.name).__name__}")
+        if len(self.name) == 0:
+            raise ValueError(f"The location name can't be empty")
+        if not isinstance(self.lat,(int)) and not isinstance(self.lat,(float)):
+            raise TypeError(f"The latitude should be an integer or float, got {type(self.lat).__name__}")
+        if not isinstance(self.long,(int)) and not isinstance(self.long,(float)):
+            raise TypeError(f"The longitude should be a integer or float, got {type(self.long).__name__}")
 
     def __str__(self):
         return f"the following location is: {self.name} and the latitude is {self.lat} and the longitude is {self.long}."
@@ -14,7 +25,25 @@ class Map:
     def __init__(self, name):
         self.name = name
         self.locations = {}          
-        self.neighbours = {}        
+        self.neighbours = {}   
+        self.check_invariants()
+
+    def check_invariants(self):
+        for key ,location in self.locations.items():
+            if not isinstance(location, Location):
+                raise TypeError(f"All values must be Location objects, got {type(location).__name__}")
+            if key != location.name:
+                raise ValueError(f"Location key '{key}' does not match location name '{location.name}'")
+        for loc in self.neighbours.keys():
+            if loc not in self.locations.keys():
+                raise ValueError(f"there are no {loc} present in {self.locations.keys()}")
+            for loc2 in self.neighbours[loc]:
+                if loc2 not in self.neighbours.keys() :
+                    raise ValueError(f"there is no {loc2} present in {self.neighbours.keys()}") 
+                if loc not in self.neighbours[loc2]:
+                    raise ValueError(f"there is no {loc} present in {self.neighbours[loc2]}")
+
+        
 
     def add_location(self, location):
         if isinstance(location, Location):
@@ -66,14 +95,31 @@ def Sample_Data():
     paris = Location("Paris", 48.8566, 2.3522)
     lyon = Location("Lyon", 45.7640, 4.8357)
     marseille = Location("Marseille", 43.2965, 5.3698)
-    
-    for loc in [paris, lyon, marseille]:
-        france.add_location(loc)
-    
+    bordeaux = Location("Bordeaux", 44.8361, -0.58081)
+    toulouse = Location("Toulouse", 43.60045, 1.44400)
+    rochelle = Location("Rochelle", 46.1591, -1.1517)
+    rennes = Location("Rennes", 48.1147, -1.6794)
+    strasbourg = Location("Strasbourg", 48.5800, 7.7500)
+    lille = Location("Lille", 50.6292, 3.05725)
+    amiens = Location("Amiens", 49.894066, 2.2957)
+
+    cities = [paris, lyon, marseille, bordeaux, toulouse, rochelle, rennes, strasbourg, lille, amiens]
+
+
+    for loc in cities:
+       france.add_location(loc)
+
+        
     france.add_neighbours(paris, lyon)
-    france.add_neighbours(paris, marseille)
     france.add_neighbours(lyon, marseille)
-    
+    france.add_neighbours(paris, strasbourg)
+    france.add_neighbours(lille, amiens)
+    france.add_neighbours(paris, lille)
+    france.add_neighbours(paris, bordeaux)
+    france.add_neighbours(bordeaux, toulouse)
+    france.add_neighbours(rochelle, bordeaux)
+    france.add_neighbours(rochelle, rennes)
+    france.check_invariants()
     countries["France"] = france
 
     # Japan
@@ -119,3 +165,5 @@ def Sample_Data():
     
 if __name__=="__main__":
     print(Sample_Data())
+    
+    
