@@ -20,13 +20,15 @@ class Location:
 
     def __repr__(self):
         return str(self)
+import collections
 
 class Map:
     def __init__(self, name):
         self.name = name
         self.locations = {}          
         self.neighbours = {}   
-        self.check_invariants()
+        self.check_invariants()  
+
 
     def check_invariants(self):
         for key ,location in self.locations.items():
@@ -42,8 +44,6 @@ class Map:
                     raise ValueError(f"there is no {loc2} present in {self.neighbours.keys()}") 
                 if loc not in self.neighbours[loc2]:
                     raise ValueError(f"there is no {loc} present in {self.neighbours[loc2]}")
-
-        
 
     def add_location(self, location):
         if isinstance(location, Location):
@@ -85,6 +85,46 @@ class Map:
             return
 
         print(f"Neighbours of {key}: {', '.join(self.neighbours[key])}")
+  
+#When it reaches the destination it. will stop 
+#Shortest path in an unweighted graph
+    def bfs(self, root, destination):
+        visited = set([root])
+        queue = collections.deque([root]) 
+        parent = {root: "Paris"}
+
+        while queue:
+            vertex = queue.popleft()                               
+            if vertex == destination:
+                path = []
+                current = destination
+                while current is not None:  
+                    path.append(current)
+                    current = parent[current] 
+                path.reverse()
+                print(f"Shortest path from {root} to {destination}: {' -> '.join(path)}")
+                return path
+        for neighbour in self.neighbours.get(vertex, []):
+            if neighbour not in visited: 
+                visited.add(neighbour)
+                parent[neighbour] = vertex  
+                queue.append(neighbour) 
+        print(f"the locations visited from Paris is: {visited}")        
+
+        
+
+if __name__ == "__main__":
+    graph = {"Paris":["Lille","Lyon","Bordeaux","Strasbourg"], 
+            "Lille":["Amiens"], 
+            "Lyon": ["Paris", "Marseille"],
+            "Bordeaux": ["Toulouse","Rochelle"], 
+            "Rochelle":["Rennes","Bordeaux"], 
+            "Amiens":["Lille"],
+            "Strasbourg":["Paris"],
+            "Marseille":["Lyon"],
+            "Toulouse":["Bordeaux"],
+            "Rennes":["Rochelle"]}    
+
 
 
 def Sample_Data():
@@ -118,12 +158,15 @@ def Sample_Data():
     france.add_neighbours(paris, bordeaux)
     france.add_neighbours(bordeaux, toulouse)
     france.add_neighbours(rochelle, bordeaux)
-    france.add_neighbours(rochelle, rennes)
+    france.add_neighbours(rochelle, rennes)   
     france.check_invariants()
-    countries["France"] = france
 
+    france.bfs("Paris", "Rochelle")
+   
+    countries["France"] = france
+    
     # Japan
-    japan = Map("Japan")
+    '''japan = Map("Japan")
     tokyo = Location("Tokyo", 35.6762, 139.6503)
     kyoto = Location("Kyoto", 35.0116, 135.7681)
     saitama = Location("Saitama", 35.8857, 139.6682)  
@@ -150,9 +193,10 @@ def Sample_Data():
     usa.add_neighbours(seattle, sf)
     usa.add_neighbours(portland, sf)
     
-    countries["USA"] = usa
+    countries["USA"] = usa'''
 
     # Now display all
+    """
     for country_name, country_map in countries.items():
         print(f"\n{country_name}:")
         country_map.display_locations()
@@ -161,9 +205,9 @@ def Sample_Data():
         for loc_name in country_map.neighbours.keys():
             country_map.display_neighbours(loc_name)
 
-    return countries
+    return countries#"""
     
-if __name__=="__main__":
-    print(Sample_Data())
+if __name__=="__main__":   
+    Sample_Data()
     
     
