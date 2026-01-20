@@ -23,7 +23,7 @@ class Location:
     
 from geopy.distance import geodesic    
 import collections
-
+import heapq
 class Map:
     def __init__(self, name):
         self.name = name
@@ -33,16 +33,16 @@ class Map:
 
 
     def check_invariants(self):
-        for key ,location in self.locations.items():
+        for key,location in self.locations.items():
             if not isinstance(location, Location):
                 raise TypeError(f"All values must be Location objects, got {type(location).__name__}")
             if key != location.name:
                 raise ValueError(f"Location key '{key}' does not match location name '{location.name}'")
-        for loc in self.neighbours.keys():
+        for loc in self.neighbours:
             if loc not in self.locations.keys():
                 raise ValueError(f"there are no {loc} present in {self.locations.keys()}")
             for loc2 in self.neighbours[loc]:
-                if loc2 not in self.neighbours.keys() :
+                if loc2 not in self.neighbours :
                     raise ValueError(f"there is no {loc2} present in {self.neighbours.keys()}") 
                 if loc not in self.neighbours[loc2]:
                     raise ValueError(f"there is no {loc} present in {self.neighbours[loc2]}")
@@ -67,18 +67,25 @@ class Map:
 
         name1, name2 = location1.name, location2.name
 
+        dist = self.calculate_distance(location1, location2)
+        print(f"{name1}--{name2}: {dist:.2f} km")
+
         if name1 not in self.neighbours or name2 not in self.neighbours:
             print("Both locations must be added to the map first")
             return
+
 
         if name2 not in self.neighbours[name1]:
             self.neighbours[name1].append(name2)
         if name1 not in self.neighbours[name2]:
             self.neighbours[name2].append(name1)
 
+
+
     def display_neighbours(self, location):
         if isinstance(location, Location):
             key = location.name
+            
         else:
             key = location
 
@@ -87,6 +94,7 @@ class Map:
             return
 
         print(f"Neighbours of {key}: {', '.join(self.neighbours[key])}")
+
 
 # creating a function to calculate the distance from one location to another location while considering its latitude and longitude 
 # Using Geopy
@@ -99,9 +107,62 @@ class Map:
         distance = geodesic(coord_1,coord_2).kilometers
         return distance 
 
+# The Dijkstra Function-- which has 2 parameters containg starting and ending point
+    def dijkstra(self, start, destination):
+        # a weighted graph
+        graph = {}
+
+    # A location name and its neighbour name should be present in the graph using for loop
+        for loc_name in self.neighbours.keys():
+            graph[loc_name] = {}
+
+            for neighbour_name in self.neighbours[loc_name]:
+                loc1 = self.locations[loc_name]
+                loc2 = self.locations[neighbour_name]
+ 
+    #Implementing weights(distances) into the graph from one node to another
+                distances = self.calculate_distance(loc1,loc2)
+                graph[loc_name][neighbour_name] = distances
+
+        distances = {node: float('inf') for node in graph}
+        distances[start] = 0
+        parent = {start: None}
+        queue = [(0, start)]   
 
 
-  
+        while queue:  
+        # inside the queue there should be a construction of a path and then provide the distances    
+         #printing the current node as it has the smallest distance    
+            current_distance, current_node = heapq.heappop(queue)      
+
+            if current_node == destination:
+                path = []
+                current = destination
+                while current is not None:  
+                    path.append(current)
+                    current = parent.get(current) 
+                path.reverse()
+                print(f"Shortest path from {start} to {destination}: {' -> '.join(path)}")
+                print(f"Total distance: {distances[destination]:.2f} km")
+                return path,distances[destination]
+        
+
+        #Skip if the current distance is already the shortest path
+            if current_distance > distances[current_node]:
+                continue
+
+        #Update if the new distance is shorter than the previous distance
+            for neighbor, weight in graph[current_node].items():
+                alt_distance = current_distance + weight
+                if alt_distance < distances[neighbor]:
+                    distances[neighbor] = alt_distance
+                    parent[neighbor] = current_node
+                    heapq.heappush(queue, (alt_distance, neighbor))
+
+    
+              
+
+
 #When it reaches the destination it. will stop 
 #Shortest path in an unweighted graph
     def bfs(self, root, destination):
@@ -151,21 +212,9 @@ def Sample_Data():
 
     for loc in cities:
        france.add_location(loc)
-# Calculating the distances based on the the neibouring locations 
-#  Creating a neighbours pair
 
-    neighbour_pair={"Paris-Lyon":(paris, lyon),
-                    "Lyon-Marseilles": (lyon, marseille),
-                    "Paris-Strasbourg": (paris, strasbourg),
-                    "Lille-Amiens": (lille, amiens),
-                    "Paris-Lille":(paris, lille),
-                    "Paris-Bordeaux": (paris, bordeaux),
-                    "Bordeaux-Toulouse":(bordeaux, toulouse),
-                    "Rochelle-Bordeaux": (rochelle, bordeaux),
-                    "Rochelle-Rennes": (rochelle, rennes)}
-    
         
-    '''france.add_neighbours(paris, lyon)
+    france.add_neighbours(paris, lyon)
     france.add_neighbours(lyon, marseille)
     france.add_neighbours(paris, strasbourg)
     france.add_neighbours(lille, amiens)
@@ -173,21 +222,14 @@ def Sample_Data():
     france.add_neighbours(paris, bordeaux)
     france.add_neighbours(bordeaux, toulouse)
     france.add_neighbours(rochelle, bordeaux)
-    france.add_neighbours(rochelle, rennes)   '''
+    france.add_neighbours(rochelle, rennes)   
     france.check_invariants()
     countries["France"] = france
     france.bfs("Paris", "Rochelle")
-
-    for pair_name, (loc1,loc2) in neighbour_pair.items():
-        france.add_neighbours(loc1,loc2)
-
-    for pair_name, (loc1,loc2) in neighbour_pair.items():
-        dist = france.calculate_distance(loc1, loc2)
-        print(f"{pair_name}: {dist:.2f} km")
+    france.dijkstra("Paris", "Rennes")
 
 
-    '''dist = france.calculate_distance(paris, bordeaux)
-    print(f"Paris to Bordeaux: {dist:.2f} km\n")'''
+    
 
 
    
