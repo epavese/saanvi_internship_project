@@ -85,7 +85,7 @@ if st.button("Find route"):
 if st.session_state.route_info:
     path, total = st.session_state.route_info
     st.success(f"Route found with {len(path):,} nodes.")
-    st.write(f"Total cost/weight: **{total}**")
+    st.write(f"Total distance/weight: **{total}**")
 
 # Always show map HTML (route map or base map)
 components.html(st.session_state.route_html, height=650, scrolling=False)
